@@ -880,6 +880,8 @@ uint64_t x86_cpu_get_supported_feature_word(FeatureWord w,
 #define CPUID_7_0_EDX_AVX512_VP2INTERSECT (1U << 8)
 /* SERIALIZE instruction */
 #define CPUID_7_0_EDX_SERIALIZE         (1U << 14)
+/* Hybrid part */
+#define CPUID_7_0_EDX_HYBRID            (1U << 15)
 /* TSX Suspend Load Address Tracking instruction */
 #define CPUID_7_0_EDX_TSX_LDTRK         (1U << 16)
 /* Architectural LBRs */
@@ -941,6 +943,9 @@ uint64_t x86_cpu_get_supported_feature_word(FeatureWord w,
 #define CPUID_XSAVE_XSAVES     (1U << 3)
 
 #define CPUID_6_EAX_ARAT       (1U << 2)
+#define CPUID_6_EAX_HWP        (1U << 7)
+#define CPUID_6_EAX_HWP_EPP    (1U << 10)
+#define CPUID_6_EAX_ITMT       (1U << 14)
 
 /* CPUID[0x80000007].EDX flags: */
 #define CPUID_APM_INVTSC       (1U << 8)

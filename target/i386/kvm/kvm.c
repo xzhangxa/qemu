@@ -403,6 +403,9 @@ uint32_t kvm_arch_get_supported_cpuid(KVMState *s, uint32_t function,
             }
         }
     } else if (function == 6 && reg == R_EAX) {
+        uint32_t eax;
+        host_cpuid(6, 0, &eax, &unused, &unused, &unused);
+        ret |= eax & (CPUID_6_EAX_ITMT | CPUID_6_EAX_HWP | CPUID_6_EAX_HWP_EPP);
         ret |= CPUID_6_EAX_ARAT; /* safe to allow because of emulated APIC */
     } else if (function == 7 && index == 0 && reg == R_EBX) {
         /* Not new instructions, just an optimization.  */
@@ -417,7 +420,7 @@ uint32_t kvm_arch_get_supported_cpuid(KVMState *s, uint32_t function,
         /* Not new instructions, just an optimization.  */
         uint32_t edx;
         host_cpuid(7, 0, &unused, &unused, &unused, &edx);
-        ret |= edx & CPUID_7_0_EDX_FSRM;
+        ret |= edx & (CPUID_7_0_EDX_FSRM | CPUID_7_0_EDX_HYBRID);
 
         /*
          * Linux v4.17-v4.20 incorrectly return ARCH_CAPABILITIES on SVM hosts.
@@ -1996,6 +1999,13 @@ int kvm_arch_init_vcpu(CPUState *cs)
                 c = &cpuid_data.entries[cpuid_i++];
             }
             break;
+        case 6:
+            c->function = i;
+            c->flags = KVM_CPUID_FLAG_SIGNIFCANT_INDEX;
+            c->index = 0;
+            cpu_x86_cpuid(env, i, 0, &c->eax, &c->ebx, &c->ecx, &c->edx);
+            c = &cpuid_data.entries[cpuid_i++];
+	    break;
         case 0x7:
         case 0x12:
             for (j = 0; ; j++) {
