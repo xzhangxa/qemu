@@ -1052,6 +1052,54 @@ FeatureWordInfo feature_word_info[FEATURE_WORDS] = {
             .index = MSR_IA32_PERF_CAPABILITIES,
         },
     },
+    [FEAT_PM_ENABLE] = {
+        .type = MSR_FEATURE_WORD,
+        .feat_names = {
+            "pm-enable", NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL,
+        },
+        .msr = {
+            .index = MSR_IA32_PM_ENABLE,
+        },
+    },
+    [FEAT_HWP_CAPABILITIES] = {
+        .type = MSR_FEATURE_WORD,
+        .feat_names = {
+            "hi-perf", "hi-perf", "hi-perf", "hi-perf",
+            "hi-perf", "hi-perf", "hi-perf", "hi-perf",
+            "guarantee-perf", "guarantee-perf", "guarantee-perf", "guarantee-perf",
+            "guarantee-perf", "guarantee-perf", "guarantee-perf", "guarantee-perf",
+            "eff-perf", "eff-perf", "eff-perf", "eff-perf",
+            "eff-perf", "eff-perf", "eff-perf", "eff-perf",
+            "lo-perf", "lo-perf", "lo-perf", "lo-perf",
+            "lo-perf", "lo-perf", "lo-perf", "lo-perf",
+        },
+        .msr = {
+            .index = MSR_IA32_HWP_CAPABILITIES,
+        },
+    },
+    [FEAT_HWP_REQUEST] = {
+        .type = MSR_FEATURE_WORD,
+        .feat_names = {
+            "min-perf", "min-perf", "min-perf", "min-perf",
+            "min-perf", "min-perf", "min-perf", "min-perf",
+            "max-perf", "max-perf", "max-perf", "max-perf",
+            "max-perf", "max-perf", "max-perf", "max-perf",
+            "desired-perf", "desired-perf", "desired-perf", "desired-perf",
+            "desired-perf", "desired-perf", "desired-perf", "desired-perf",
+            "energy-pref", "energy-perf", "energy-perf", "energy-perf",
+            "energy-pref", "energy-perf", "energy-perf", "energy-perf",
+        },
+        .msr = {
+            .index = MSR_IA32_HWP_REQUEST,
+        },
+    },
 
     [FEAT_VMX_PROCBASED_CTLS] = {
         .type = MSR_FEATURE_WORD,
@@ -1307,6 +1355,18 @@ static FeatureDep feature_dependencies[] = {
     {
         .from = { FEAT_7_0_EDX,             CPUID_7_0_EDX_CORE_CAPABILITY },
         .to = { FEAT_CORE_CAPABILITY,       ~0ull },
+    },
+    {
+        .from = { FEAT_6_EAX,               CPUID_6_EAX_HWP },
+        .to = { FEAT_PM_ENABLE,             ~0ull },
+    },
+    {
+        .from = { FEAT_6_EAX,               CPUID_6_EAX_HWP },
+        .to = { FEAT_HWP_CAPABILITIES,      ~0ull },
+    },
+    {
+        .from = { FEAT_6_EAX,               CPUID_6_EAX_HWP },
+        .to = { FEAT_HWP_REQUEST,           ~0ull },
     },
     {
         .from = { FEAT_1_ECX,             CPUID_EXT_PDCM },
@@ -6593,6 +6653,19 @@ static void x86_cpu_realizefn(DeviceState *dev, Error **errp)
                         requested_lbr_fmt, host_lbr_fmt);
             return;
         }
+    }
+
+    /*
+     * TODO FIXME hardcode per-core HWP MSRs
+     */
+    if (cpu->apic_id < 2) {
+        env->features[FEAT_PM_ENABLE] = 0;
+        env->features[FEAT_HWP_CAPABILITIES] = 0x10B2746;
+        env->features[FEAT_HWP_REQUEST] = 0x8000FF01;
+    } else {
+        env->features[FEAT_PM_ENABLE] = 0;
+        env->features[FEAT_HWP_CAPABILITIES] = 0x10F162B;
+        env->features[FEAT_HWP_REQUEST] = 0x8000FF01;
     }
 
     x86_cpu_filter_features(cpu, cpu->check_cpuid || cpu->enforce_cpuid);

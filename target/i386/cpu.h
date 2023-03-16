@@ -491,6 +491,10 @@ typedef enum X86Seg {
 #define MSR_IA32_RTIT_ADDR3_B           0x587
 #define MAX_RTIT_ADDRS                  8
 
+#define MSR_IA32_PM_ENABLE              0x770
+#define MSR_IA32_HWP_CAPABILITIES       0x771
+#define MSR_IA32_HWP_REQUEST            0x774
+
 #define MSR_EFER                        0xc0000080
 
 #define MSR_EFER_SCE   (1 << 0)
@@ -611,6 +615,9 @@ typedef enum FeatureWord {
     FEAT_ARCH_CAPABILITIES,
     FEAT_CORE_CAPABILITY,
     FEAT_PERF_CAPABILITIES,
+    FEAT_PM_ENABLE,
+    FEAT_HWP_CAPABILITIES,
+    FEAT_HWP_REQUEST,
     FEAT_VMX_PROCBASED_CTLS,
     FEAT_VMX_SECONDARY_CTLS,
     FEAT_VMX_PINBASED_CTLS,

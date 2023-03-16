@@ -124,6 +124,7 @@ static bool has_msr_virt_ssbd;
 static bool has_msr_smi_count;
 static bool has_msr_arch_capabs;
 static bool has_msr_core_capabs;
+static bool has_msr_pm_enable;
 static bool has_msr_vmx_vmfunc;
 static bool has_msr_ucode_rev;
 static bool has_msr_vmx_procbased_ctls2;
@@ -2496,6 +2497,9 @@ static int kvm_get_supported_msrs(KVMState *s)
             case MSR_IA32_PERF_CAPABILITIES:
                 has_msr_perf_capabs = true;
                 break;
+            case MSR_IA32_PM_ENABLE:
+                has_msr_pm_enable = true;
+                break;
             case MSR_IA32_VMX_VMFUNC:
                 has_msr_vmx_vmfunc = true;
                 break;
@@ -3322,6 +3326,15 @@ static void kvm_init_msrs(X86CPU *cpu)
         kvm_msr_entry_add_perf(cpu, env->features);
     }
 
+    if (has_msr_pm_enable) {
+        kvm_msr_entry_add(cpu, MSR_IA32_PM_ENABLE,
+                          env->features[FEAT_PM_ENABLE]);
+        kvm_msr_entry_add(cpu, MSR_IA32_HWP_CAPABILITIES,
+                          env->features[FEAT_HWP_CAPABILITIES]);
+        kvm_msr_entry_add(cpu, MSR_IA32_HWP_REQUEST,
+                          env->features[FEAT_HWP_REQUEST]);
+    }
+
     if (has_msr_ucode_rev) {
         kvm_msr_entry_add(cpu, MSR_IA32_UCODE_REV, cpu->ucode_rev);
     }
@@ -3894,6 +3907,11 @@ static int kvm_get_msrs(X86CPU *cpu)
     if (!env->tsc_valid) {
         kvm_msr_entry_add(cpu, MSR_IA32_TSC, 0);
         env->tsc_valid = !runstate_is_running();
+    }
+    if (has_msr_pm_enable) {
+        kvm_msr_entry_add(cpu, MSR_IA32_PM_ENABLE, 0);
+        kvm_msr_entry_add(cpu, MSR_IA32_HWP_CAPABILITIES, 0);
+        kvm_msr_entry_add(cpu, MSR_IA32_HWP_REQUEST, 0);
     }
 
 #ifdef TARGET_X86_64
